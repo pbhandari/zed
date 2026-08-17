@@ -85,6 +85,10 @@ pub trait Panel: Focusable + EventEmitter<PanelEvent> + Render + Sized {
     fn pane(&self) -> Option<Entity<Pane>> {
         None
     }
+    fn has_focused_child_pane(&self, window: &Window, cx: &App) -> bool {
+        self.pane()
+            .is_some_and(|pane| pane.read(cx).has_focus(window, cx))
+    }
     fn remote_id() -> Option<proto::PanelId> {
         None
     }
@@ -115,6 +119,7 @@ pub trait PanelHandle: Send + Sync {
     fn set_active(&self, active: bool, window: &mut Window, cx: &mut App);
     fn remote_id(&self) -> Option<proto::PanelId>;
     fn pane(&self, cx: &App) -> Option<Entity<Pane>>;
+    fn has_focused_child_pane(&self, window: &Window, cx: &App) -> bool;
     fn default_size(&self, window: &Window, cx: &App) -> Pixels;
     fn min_size(&self, window: &Window, cx: &App) -> Option<Pixels>;
     fn initial_size_state(&self, window: &Window, cx: &App) -> PanelSizeState;
@@ -193,6 +198,10 @@ where
 
     fn pane(&self, cx: &App) -> Option<Entity<Pane>> {
         self.read(cx).pane()
+    }
+
+    fn has_focused_child_pane(&self, window: &Window, cx: &App) -> bool {
+        self.read(cx).has_focused_child_pane(window, cx)
     }
 
     fn remote_id(&self) -> Option<PanelId> {
@@ -1130,9 +1139,20 @@ impl Dock {
 }
 
 impl Render for Dock {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let dispatch_context = Self::dispatch_context();
         if let Some(entry) = self.visible_entry() {
+            let pane_focused = entry.panel.has_focused_child_pane(window, cx);
+            let is_focused = !pane_focused
+                && (self.focus_handle(cx).contains_focused(window, cx)
+                    || entry
+                        .panel
+                        .panel_focus_handle(cx)
+                        .contains_focused(window, cx)
+                    || entry
+                        .panel
+                        .activation_focus_handle(cx)
+                        .contains_focused(window, cx));
             let position = self.position;
             let create_resize_handle = || {
                 let handle = div()
@@ -1195,6 +1215,7 @@ impl Render for Dock {
 
             div()
                 .id("dock-panel")
+                .relative()
                 .key_context(dispatch_context)
                 .track_focus(&self.focus_handle(cx))
                 .focus_follows_mouse(self.focus_follows_mouse, cx)
@@ -1226,6 +1247,17 @@ impl Render for Dock {
                                 .cached(StyleRefinement::default().v_flex().size_full()),
                         ),
                 )
+                .when(is_focused, |this| {
+                    this.child(
+                        div()
+                            .absolute()
+                            .size_full()
+                            .left_0()
+                            .top_0()
+                            .border_2()
+                            .border_color(cx.theme().colors().panel_focused_border),
+                    )
+                })
                 .when(self.resizable(cx), |this| {
                     this.child(create_resize_handle())
                 })

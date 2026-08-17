@@ -565,6 +565,10 @@ impl Member {
 
                 let decoration = render_cx.decorate(pane, cx);
                 let is_active = pane == render_cx.active_pane();
+                let is_focused = pane.read(cx).has_focus(window, cx);
+                let border = decoration
+                    .border
+                    .or_else(|| is_focused.then_some(cx.theme().colors().pane_focused_border));
 
                 let pane = div()
                     .relative()
@@ -580,7 +584,7 @@ impl Member {
                         AnyView::from(pane.clone())
                             .cached(StyleRefinement::default().v_flex().size_full()),
                     )
-                    .when_some(decoration.border, |this, color| {
+                    .when_some(border, |this, color| {
                         this.child(
                             div()
                                 .absolute()
