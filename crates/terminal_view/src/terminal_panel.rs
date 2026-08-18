@@ -1675,6 +1675,10 @@ impl Panel for TerminalPanel {
         Some(self.active_pane.clone())
     }
 
+    fn panes(&self, _cx: &App) -> Vec<Entity<Pane>> {
+        self.center.panes().into_iter().cloned().collect()
+    }
+
     fn activation_priority(&self) -> u32 {
         2
     }

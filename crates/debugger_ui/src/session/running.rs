@@ -100,11 +100,8 @@ impl RunningState {
         &self.active_pane
     }
 
-    pub(crate) fn has_focused_pane(&self, window: &Window, cx: &App) -> bool {
-        self.panes
-            .panes()
-            .into_iter()
-            .any(|pane| pane.read(cx).has_focus(window, cx))
+    pub(crate) fn panes(&self) -> Vec<Entity<Pane>> {
+        self.panes.panes().into_iter().cloned().collect()
     }
 }
 

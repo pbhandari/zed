@@ -86,9 +86,13 @@ pub trait Panel: Focusable + EventEmitter<PanelEvent> + Render + Sized {
     fn pane(&self) -> Option<Entity<Pane>> {
         None
     }
+    fn panes(&self, _cx: &App) -> Vec<Entity<Pane>> {
+        self.pane().into_iter().collect()
+    }
     fn has_focused_child_pane(&self, window: &Window, cx: &App) -> bool {
-        self.pane()
-            .is_some_and(|pane| pane.read(cx).has_focus(window, cx))
+        self.panes(cx)
+            .iter()
+            .any(|pane| pane.read(cx).has_focus(window, cx))
     }
     fn remote_id() -> Option<proto::PanelId> {
         None

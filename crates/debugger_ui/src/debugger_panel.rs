@@ -1536,14 +1536,11 @@ impl Panel for DebugPanel {
         None
     }
 
-    fn has_focused_child_pane(&self, window: &Window, cx: &App) -> bool {
-        self.active_session.as_ref().is_some_and(|session| {
-            session
-                .read(cx)
-                .running_state()
-                .read(cx)
-                .has_focused_pane(window, cx)
-        })
+    fn panes(&self, cx: &App) -> Vec<Entity<Pane>> {
+        self.active_session
+            .as_ref()
+            .map(|session| session.read(cx).running_state().read(cx).panes())
+            .unwrap_or_default()
     }
 
     fn activation_priority(&self) -> u32 {
