@@ -1,4 +1,5 @@
 use crate::focus_follows_mouse::FocusFollowsMouse as _;
+use crate::pane_group::focused_border_overlay;
 use crate::persistence::model::DockData;
 use crate::status_bar::HideStatusItem;
 use crate::{DraggedDock, Event, FocusFollowsMouse, ModalLayer, Pane, WorkspaceSettings};
@@ -1248,15 +1249,9 @@ impl Render for Dock {
                         ),
                 )
                 .when(is_focused, |this| {
-                    this.child(
-                        div()
-                            .absolute()
-                            .size_full()
-                            .left_0()
-                            .top_0()
-                            .border_2()
-                            .border_color(cx.theme().colors().panel_focused_border),
-                    )
+                    this.child(focused_border_overlay(
+                        cx.theme().colors().panel_focused_border,
+                    ))
                 })
                 .when(self.resizable(cx), |this| {
                     this.child(create_resize_handle())

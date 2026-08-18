@@ -23,6 +23,16 @@ pub const HANDLE_HITBOX_SIZE: f32 = 4.0;
 const HORIZONTAL_MIN_SIZE: f32 = 80.;
 const VERTICAL_MIN_SIZE: f32 = 100.;
 
+pub(crate) fn focused_border_overlay(color: Hsla) -> impl IntoElement {
+    div()
+        .absolute()
+        .size_full()
+        .left_0()
+        .top_0()
+        .border_2()
+        .border_color(color)
+}
+
 /// One or many panes, arranged in a horizontal or vertical axis due to a split.
 /// Panes have all their tabs and capabilities preserved, and can be split again or resized.
 /// Single-pane group is a regular pane.
@@ -585,15 +595,7 @@ impl Member {
                             .cached(StyleRefinement::default().v_flex().size_full()),
                     )
                     .when_some(border, |this, color| {
-                        this.child(
-                            div()
-                                .absolute()
-                                .size_full()
-                                .left_0()
-                                .top_0()
-                                .border_2()
-                                .border_color(color),
-                        )
+                        this.child(focused_border_overlay(color))
                     })
                     .children(decoration.status_box);
 
