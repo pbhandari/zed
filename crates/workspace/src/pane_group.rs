@@ -23,6 +23,16 @@ pub const HANDLE_HITBOX_SIZE: f32 = 4.0;
 const HORIZONTAL_MIN_SIZE: f32 = 80.;
 const VERTICAL_MIN_SIZE: f32 = 100.;
 
+pub(crate) fn focused_border_overlay(color: Hsla) -> impl IntoElement {
+    div()
+        .absolute()
+        .size_full()
+        .left_0()
+        .top_0()
+        .border_2()
+        .border_color(color)
+}
+
 /// One or many panes, arranged in a horizontal or vertical axis due to a split.
 /// Panes have all their tabs and capabilities preserved, and can be split again or resized.
 /// Single-pane group is a regular pane.
@@ -565,6 +575,10 @@ impl Member {
 
                 let decoration = render_cx.decorate(pane, cx);
                 let is_active = pane == render_cx.active_pane();
+                let is_focused = pane.read(cx).has_focus(window, cx);
+                let border = decoration
+                    .border
+                    .or_else(|| is_focused.then_some(cx.theme().colors().pane_focused_border));
 
                 let pane = div()
                     .relative()
@@ -580,16 +594,8 @@ impl Member {
                         AnyView::from(pane.clone())
                             .cached(StyleRefinement::default().v_flex().size_full()),
                     )
-                    .when_some(decoration.border, |this, color| {
-                        this.child(
-                            div()
-                                .absolute()
-                                .size_full()
-                                .left_0()
-                                .top_0()
-                                .border_2()
-                                .border_color(color),
-                        )
+                    .when_some(border, |this, color| {
+                        this.child(focused_border_overlay(color))
                     })
                     .children(decoration.status_box);
 

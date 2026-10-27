@@ -33,7 +33,7 @@ use dap::{
 use futures::{SinkExt, channel::mpsc};
 use gpui::{
     Action as _, AnyView, App, AppContext, Axis, Entity, EntityId, EventEmitter, FocusHandle,
-    Focusable, NoAction, Pixels, Point, Subscription, Task, TaskExt, WeakEntity,
+    Focusable, NoAction, Pixels, Point, Subscription, Task, TaskExt, WeakEntity, Window,
 };
 use language::Buffer;
 use loaded_source_list::LoadedSourceList;
@@ -98,6 +98,10 @@ impl RunningState {
 
     pub(crate) fn active_pane(&self) -> &Entity<Pane> {
         &self.active_pane
+    }
+
+    pub(crate) fn panes(&self) -> Vec<Entity<Pane>> {
+        self.panes.panes().into_iter().cloned().collect()
     }
 }
 
